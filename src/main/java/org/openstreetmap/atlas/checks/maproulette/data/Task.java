@@ -58,6 +58,7 @@ public class Task
     protected static final String TASK_PARENT_ID = "parent";
     protected static final String TASK_TYPE = "type";
     private static final String KEY_DESCRIPTION = "description";
+    private static final String TASK_CHALLENGE_NAME = "challenge";
     private String challengeName;
     private Optional<JsonArray> geoJson = Optional.empty();
     private String instruction;
@@ -102,6 +103,7 @@ public class Task
         task.add(TASK_NAME, new JsonPrimitive(getTaskIdentifier()));
         task.add(TASK_PARENT_ID, new JsonPrimitive(parentIdentifier));
         task.add(TASK_GEOMETRIES, result);
+        task.add(TASK_CHALLENGE_NAME, new JsonPrimitive(this.challengeName));
         return task;
     }
 
