@@ -8,19 +8,16 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.StringUtils;
-import org.openstreetmap.atlas.checks.flag.CheckFlag;
-import org.openstreetmap.atlas.checks.flag.serializer.CheckFlagDeserializer;
+import org.openstreetmap.atlas.checks.maproulette.data.cooperative_challenge.TagChangeOperation;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
-import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
-import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
-import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
-import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.TagChangeDescriptor;
+
 
 /**
  * A task is a single unit of work in the MapRoulette Challenge
@@ -57,6 +54,8 @@ public class Task
 
     /**
      *
+     * Given some feature changes, convert them one by one to JSON cooperative challenge operations
+     * @author seancoulter
      */
     public static class FixSuggestionToCooperativeWorkConvertor
     {
@@ -73,103 +72,10 @@ public class Task
             for (final FeatureChange featureChange : this.featureChanges)
             {
                 final ChangeDescription whatChanged = featureChange.explain();
-                operationsList.add(new TagChangeOperation(whatChanged).create().json);
+                operationsList.add(new TagChangeOperation(whatChanged).create().getJson());
             }
             // convert each featureChange to a cooperative work object
             return operationsList;
-        }
-    }
-
-    public static class TagChangeOperation
-    {
-        private final ChangeDescriptorType operationType;
-        private final long id;
-        private final List<ChangeDescriptor> operations;
-        private JsonObject json;
-        private final String OPERATION_TYPE = "operationType";
-        private final String DATA = "data";
-        private final String ID = "id";
-        private final String OPERATIONS = "operations";
-        private final String OPERATION = "operation";
-
-        public TagChangeOperation(final ChangeDescription changeDescription)
-        {
-            this.operationType = changeDescription.getChangeDescriptorType();
-            this.id = changeDescription.getIdentifier();
-            this.operations = changeDescription.getChangeDescriptors();
-        }
-
-        /**
-         *
-         * @return
-         */
-        public TagChangeOperation create()
-        {
-            this.json = new JsonObject();
-            final JsonObject data = new JsonObject();
-            data.add(this.ID, new JsonPrimitive(this.id));
-            final JsonArray operationsArray = new JsonArray();
-            this.operations.forEach(operation ->
-            {
-                final JsonObject nestedOperation = new JsonObject();
-                final String action = this.convertChangeDescriptorType(operation.getChangeDescriptorType());
-                nestedOperation.add(this.OPERATION, new JsonPrimitive(action));
-                if ("unsetTags".equals(action))
-                {
-                    final JsonArray tagChanges = new JsonArray();
-                    tagChanges.add(new JsonPrimitive(((TagChangeDescriptor) operation).getKey()));
-                    nestedOperation.add(this.DATA, tagChanges);
-                }
-                else if ("setTags".equals(action))
-                {
-                    final JsonObject tagChanges = new JsonObject();
-                    tagChanges.add(((TagChangeDescriptor) operation).getKey(), new JsonPrimitive(((TagChangeDescriptor) operation).getValue()));
-                    nestedOperation.add(this.DATA, tagChanges);
-                }
-                operationsArray.add(nestedOperation);
-            });
-            data.add(this.OPERATIONS, operationsArray);
-            this.json.add(OPERATION_TYPE, new JsonPrimitive(this.convertAction(this.operationType)));
-            this.json.add(this.DATA, data);
-            return this;
-        }
-
-        /**
-         *
-         * @param descriptorType
-         * @return
-         */
-        private String convertAction(final ChangeDescriptorType descriptorType)
-        {
-            if ("UPDATE".equals(descriptorType.name()))
-            {
-                return "modifyElement";
-            }
-            if ("REMOVE".equals(descriptorType.name()))
-            {
-                return "removeElement";
-            }
-            // Unsupported
-            return "";
-        }
-
-        /**
-         *
-         * @param descriptorType
-         * @return
-         */
-        private String convertChangeDescriptorType(final ChangeDescriptorType descriptorType)
-        {
-            if ("UPDATE".equals(descriptorType.name()))
-            {
-                return "setTags";
-            }
-            if ("REMOVE".equals(descriptorType.name()))
-            {
-                return "unsetTags";
-            }
-            // Unsupported
-            return "";
         }
     }
 
@@ -188,6 +94,7 @@ public class Task
     private static final String CHECK_GENERATOR = "flag:check";
     private static final String FRAMEWORK_GENERATOR = "flag:generator";
     private static final String FRAMEWORK = "Atlas Checks";
+    private static final String COOPERATIVE_WORK = "cooperativeWork";
     private String challengeName;
     private Optional<JsonArray> geoJson = Optional.empty();
     private String instruction;
@@ -229,6 +136,10 @@ public class Task
         final JsonObject result = new JsonObject();
         result.addProperty(TASK_TYPE, "FeatureCollection");
         result.add(TASK_FEATURES, this.generateTaskFeatures(this.points, this.geoJson));
+        if (!this.cooperativeWork.isEmpty())
+        {
+            result.add(COOPERATIVE_WORK, this.generateTaskCooperativeWork(this.cooperativeWork));
+        }
         task.add(TASK_INSTRUCTION, new JsonPrimitive(this.instruction));
         task.add(TASK_NAME, new JsonPrimitive(this.getTaskIdentifier()));
         task.add(TASK_PARENT_ID, new JsonPrimitive(parentIdentifier));
@@ -314,6 +225,19 @@ public class Task
     public void setTaskIdentifier(final String taskIdentifier)
     {
         this.taskIdentifier = taskIdentifier;
+    }
+
+    private JsonObject generateTaskCooperativeWork(final List<JsonObject> cooperativeWork)
+    {
+        final JsonObject cooperativeWorkObject = new JsonObject();
+        final JsonObject meta = new JsonObject();
+        meta.add("version", new JsonPrimitive(2));
+        meta.add("type", new JsonPrimitive(1));
+        cooperativeWorkObject.add("meta", meta);
+        final JsonArray cooperativeWorkArray = new JsonArray();
+        cooperativeWork.forEach(cooperativeWorkArray::add);
+        cooperativeWorkObject.add("operations", cooperativeWorkArray);
+        return cooperativeWorkObject;
     }
 
     protected JsonArray generateTaskFeatures(final Set<PointInformation> source,
