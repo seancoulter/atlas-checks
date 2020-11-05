@@ -486,6 +486,10 @@ public class CheckFlag implements Iterable<Location>, Located, Serializable
                     .forEach(features::add);
         }
         task.setGeoJson(Optional.of(features));
+        if (!this.fixSuggestions.isEmpty())
+        {
+            task.setCooperativeWork(this.fixSuggestions);
+        }
         return task;
     }
 

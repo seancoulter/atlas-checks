@@ -154,7 +154,7 @@ public class MapRouletteUploadCommand extends MapRouletteCommand
                                         ignore -> this.getChallenge(check,
                                                 instructions, countryCode, checkinCommentPrefix,
                                                 checkinComment));
-                                this.addTask(challenge, null);
+                                this.addTask(challenge, (osmFlag.orElse(flagRecoveredFromLine).getMapRouletteTask()));
                             }
                             catch (URISyntaxException | UnsupportedEncodingException error)
                             {
