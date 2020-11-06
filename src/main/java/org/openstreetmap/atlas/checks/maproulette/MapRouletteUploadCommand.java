@@ -17,6 +17,7 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.checks.flag.CheckFlag;
+import org.openstreetmap.atlas.checks.flag.FlaggedObject;
 import org.openstreetmap.atlas.checks.flag.serializer.CheckFlagDeserializer;
 import org.openstreetmap.atlas.checks.maproulette.data.Challenge;
 import org.openstreetmap.atlas.checks.maproulette.data.ChallengeStatus;
@@ -94,7 +95,7 @@ public class MapRouletteUploadCommand extends MapRouletteCommand
      */
     public String getCountryDisplayName(final String countryCode)
     {
-        return Arrays.stream(countryCode.split(","))
+        return FlaggedObject.COUNTRY_MISSING.equals(countryCode) ? "" : Arrays.stream(countryCode.split(","))
                 .map(country -> IsoCountry.displayCountry(country).orElse(country))
                 .collect(Collectors.joining(", "));
     }
@@ -130,27 +131,26 @@ public class MapRouletteUploadCommand extends MapRouletteCommand
                 {
                     reader.lines().filter(line -> line.trim().length() > 0).forEach(line ->
                     {
-                        final CheckFlagDeserializer deserializer = new CheckFlagDeserializer();
-                        final CheckFlag flagRecoveredFromLine = deserializer.deserialize(new JsonParser().parse(line), null, null);
+                        final CheckFlag flagRecoveredFromLine = new CheckFlagDeserializer().deserialize(new JsonParser().parse(line), null, null);
                         final String countryCode = flagRecoveredFromLine.getCountryISO();
-                        final String check = flagRecoveredFromLine.getChallengeName().orElse("");
-                        if ((countries.isEmpty() || countries.get().contains(countryCode))
+                        final String challenge = flagRecoveredFromLine.getChallengeName().orElse("");
+                        if ((countries.isEmpty() || (!FlaggedObject.COUNTRY_MISSING.equals(countryCode) && countries.get().contains(countryCode)))
                                 // If the checks filter exists, check that the challenge name is in
                                 // the checks filter.
-                                && (checks.isEmpty() || checks.get().contains(check)))
+                                && (checks.isEmpty() || checks.get().contains(challenge)))
                         {
                             final Optional<CheckFlag> osmFlag = OpenStreetMapCheckFlagConverter.openStreetMapify(flagRecoveredFromLine);
                             try
                             {
                                 final Map<String, Challenge> countryToChallengeMap = this.checkNameChallengeMap
-                                        .computeIfAbsent(check,
+                                        .computeIfAbsent(challenge,
                                                 ignore -> new HashMap<>());
-                                final Challenge challenge = countryToChallengeMap.computeIfAbsent(
+                                final Challenge challengeObject = countryToChallengeMap.computeIfAbsent(
                                         countryCode,
-                                        ignore -> this.getChallenge(check,
+                                        ignore -> this.getChallenge(challenge,
                                                 instructions, countryCode, checkinCommentPrefix,
                                                 checkinComment));
-                                this.addTask(challenge, osmFlag.orElse(flagRecoveredFromLine).getMapRouletteTask());
+                                this.addTask(challengeObject, osmFlag.orElse(flagRecoveredFromLine).getMapRouletteTask());
                             }
                             catch (URISyntaxException | UnsupportedEncodingException error)
                             {
