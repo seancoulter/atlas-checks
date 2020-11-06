@@ -1,12 +1,13 @@
 package org.openstreetmap.atlas.checks.maproulette.data.cooperative_challenge;
 
-import com.google.gson.JsonObject;
+import java.util.List;
+
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescriptorType;
 import org.openstreetmap.atlas.geography.atlas.change.description.descriptors.ChangeDescriptor;
 import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 
-import java.util.List;
+import com.google.gson.JsonObject;
 
 /***
  * This represents an operation that is embedded in a cooperative challenge
@@ -36,10 +37,10 @@ import java.util.List;
  */
 public abstract class CooperativeChallengeOperation
 {
-    protected final ChangeDescriptorType operationType;
-    protected final String id;
-    protected final List<ChangeDescriptor> changeDescriptorList;
-    protected JsonObject json;
+    private final ChangeDescriptorType operationType;
+    private final String identifier;
+    private final List<ChangeDescriptor> changeDescriptorList;
+    private JsonObject json;
     protected static final String OPERATION_TYPE_KEY = "operationType";
     protected static final String DATA_KEY = "data";
     protected static final String ID_KEY = "id";
@@ -47,21 +48,6 @@ public abstract class CooperativeChallengeOperation
     protected static final String OPERATION_KEY = "operation";
     private static final String DELIMITER = "/";
     private static final int ATLAS_SECTIONING_IDENTIFIER_LENGTH = 6;
-
-    public CooperativeChallengeOperation(final ChangeDescription changeDescription)
-    {
-        this.operationType = changeDescription.getChangeDescriptorType();
-        final String rawId = Long.toString(changeDescription.getIdentifier());
-        this.id = String.join(DELIMITER, extractOSMObjectFromItemType(changeDescription.getItemType()), rawId.substring(0, rawId.length() - ATLAS_SECTIONING_IDENTIFIER_LENGTH));
-        this.changeDescriptorList = changeDescription.getChangeDescriptors();
-    }
-
-    public abstract CooperativeChallengeOperation create();
-
-    public JsonObject getJson()
-    {
-        return this.json;
-    }
 
     /**
      * Return the string representation of the OSM data type best representing the itemType
@@ -79,6 +65,41 @@ public abstract class CooperativeChallengeOperation
             return "node";
         }
         return "way";
+    }
+
+    public CooperativeChallengeOperation(final ChangeDescription changeDescription)
+    {
+        this.operationType = changeDescription.getChangeDescriptorType();
+        final String rawId = Long.toString(changeDescription.getIdentifier());
+        this.identifier = String.join(DELIMITER, extractOSMObjectFromItemType(changeDescription.getItemType()), rawId.substring(0, rawId.length() - ATLAS_SECTIONING_IDENTIFIER_LENGTH));
+        this.changeDescriptorList = changeDescription.getChangeDescriptors();
+    }
+
+    public abstract CooperativeChallengeOperation create();
+
+    public JsonObject getJson()
+    {
+        return this.json;
+    }
+
+    protected List<ChangeDescriptor> getChangeDescriptorList()
+    {
+        return this.changeDescriptorList;
+    }
+
+    protected String getIdentifier()
+    {
+        return this.identifier;
+    }
+
+    protected ChangeDescriptorType getOperationType()
+    {
+        return this.operationType;
+    }
+
+    protected void setJson(final JsonObject json)
+    {
+        this.json = json;
     }
 
 }

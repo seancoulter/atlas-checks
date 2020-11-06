@@ -33,12 +33,12 @@ public class TagChangeOperation extends CooperativeChallengeOperation
     @Override
     public TagChangeOperation create()
     {
-        this.json = new JsonObject();
+        final JsonObject json = new JsonObject();
         final JsonObject data = new JsonObject();
-        data.add(ID_KEY, new JsonPrimitive(this.id));
+        data.add(ID_KEY, new JsonPrimitive(this.getIdentifier()));
         final JsonArray operationsArray = new JsonArray();
         // Convert each change descriptor to a cooperativeWork object for use in a cooperative challenge
-        this.changeDescriptorList.forEach(changeDescriptor ->
+        this.getChangeDescriptorList().forEach(changeDescriptor ->
         {
             final JsonObject nestedOperation = new JsonObject();
             final String action = this.convertChangeDescriptorType(changeDescriptor.getChangeDescriptorType());
@@ -59,8 +59,9 @@ public class TagChangeOperation extends CooperativeChallengeOperation
             operationsArray.add(nestedOperation);
         });
         data.add(OPERATIONS_KEY, operationsArray);
-        this.json.add(OPERATION_TYPE_KEY, new JsonPrimitive(this.convertAction(this.operationType)));
-        this.json.add(DATA_KEY, data);
+        json.add(OPERATION_TYPE_KEY, new JsonPrimitive(this.convertAction(this.getOperationType())));
+        json.add(DATA_KEY, data);
+        this.setJson(json);
         return this;
     }
 

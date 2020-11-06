@@ -15,22 +15,18 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.google.gson.JsonParser;
 import org.apache.commons.lang3.StringUtils;
 import org.openstreetmap.atlas.checks.flag.CheckFlag;
 import org.openstreetmap.atlas.checks.flag.serializer.CheckFlagDeserializer;
 import org.openstreetmap.atlas.checks.maproulette.data.Challenge;
 import org.openstreetmap.atlas.checks.maproulette.data.ChallengeStatus;
-import org.openstreetmap.atlas.checks.maproulette.data.Task;
 import org.openstreetmap.atlas.checks.maproulette.serializer.ChallengeDeserializer;
-import org.openstreetmap.atlas.checks.maproulette.serializer.TaskDeserializer;
 import org.openstreetmap.atlas.checks.utility.FileUtility;
 import org.openstreetmap.atlas.checks.utility.FileUtility.LogOutputFileType;
 import org.openstreetmap.atlas.checks.utility.OpenStreetMapCheckFlagConverter;
 import org.openstreetmap.atlas.locale.IsoCountry;
 import org.openstreetmap.atlas.streaming.resource.File;
 import org.openstreetmap.atlas.tags.ISOCountryTag;
-import org.openstreetmap.atlas.utilities.collections.Iterables;
 import org.openstreetmap.atlas.utilities.configuration.Configuration;
 import org.openstreetmap.atlas.utilities.configuration.StandardConfiguration;
 import org.openstreetmap.atlas.utilities.runtime.CommandMap;
@@ -39,9 +35,9 @@ import org.slf4j.LoggerFactory;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 
 /**
  * Given a directory of log files created by atlas-checks, upload those files to MapRoulette.
@@ -154,7 +150,7 @@ public class MapRouletteUploadCommand extends MapRouletteCommand
                                         ignore -> this.getChallenge(check,
                                                 instructions, countryCode, checkinCommentPrefix,
                                                 checkinComment));
-                                this.addTask(challenge, (osmFlag.orElse(flagRecoveredFromLine).getMapRouletteTask()));
+                                this.addTask(challenge, osmFlag.orElse(flagRecoveredFromLine).getMapRouletteTask());
                             }
                             catch (URISyntaxException | UnsupportedEncodingException error)
                             {

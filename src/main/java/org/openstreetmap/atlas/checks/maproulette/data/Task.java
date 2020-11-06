@@ -9,10 +9,10 @@ import java.util.stream.Collectors;
 
 import org.apache.commons.codec.binary.StringUtils;
 import org.openstreetmap.atlas.checks.maproulette.data.cooperative_challenge.TagChangeOperation;
-import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
-import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 import org.openstreetmap.atlas.exception.CoreException;
 import org.openstreetmap.atlas.geography.Location;
+import org.openstreetmap.atlas.geography.atlas.change.FeatureChange;
+import org.openstreetmap.atlas.geography.atlas.change.description.ChangeDescription;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
@@ -240,7 +240,7 @@ public class Task
         return cooperativeWorkObject;
     }
 
-    protected JsonArray generateTaskFeatures(final Set<PointInformation> source,
+    private JsonArray generateTaskFeatures(final Set<PointInformation> source,
             final Optional<JsonArray> geoJson)
     {
         final JsonArray features = new JsonArray();
