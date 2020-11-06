@@ -18,7 +18,6 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 
-
 /**
  * A task is a single unit of work in the MapRoulette Challenge
  *
@@ -53,8 +52,8 @@ public class Task
     }
 
     /**
-     *
      * Given some feature changes, convert them one by one to JSON cooperative challenge operations
+     * 
      * @author seancoulter
      */
     public static class FixSuggestionToCooperativeWorkConvertor
@@ -136,7 +135,7 @@ public class Task
         final JsonObject result = new JsonObject();
         result.addProperty(TASK_TYPE, "FeatureCollection");
         result.add(TASK_FEATURES, this.generateTaskFeatures(this.points, this.geoJson));
-        if (!this.cooperativeWork.isEmpty())
+        if (this.cooperativeWork != null && !this.cooperativeWork.isEmpty())
         {
             result.add(COOPERATIVE_WORK, this.generateTaskCooperativeWork(this.cooperativeWork));
         }
@@ -191,7 +190,8 @@ public class Task
 
     public void setCooperativeWork(final Set<FeatureChange> fixSuggestions)
     {
-        final List<JsonObject> cooperativeWork = new FixSuggestionToCooperativeWorkConvertor(fixSuggestions).convert();
+        final List<JsonObject> cooperativeWork = new FixSuggestionToCooperativeWorkConvertor(
+                fixSuggestions).convert();
         this.cooperativeWork = cooperativeWork;
     }
 

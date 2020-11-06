@@ -95,9 +95,10 @@ public class MapRouletteUploadCommand extends MapRouletteCommand
      */
     public String getCountryDisplayName(final String countryCode)
     {
-        return FlaggedObject.COUNTRY_MISSING.equals(countryCode) ? "" : Arrays.stream(countryCode.split(","))
-                .map(country -> IsoCountry.displayCountry(country).orElse(country))
-                .collect(Collectors.joining(", "));
+        return FlaggedObject.COUNTRY_MISSING.equals(countryCode) ? ""
+                : Arrays.stream(countryCode.split(","))
+                        .map(country -> IsoCountry.displayCountry(country).orElse(country))
+                        .collect(Collectors.joining(", "));
     }
 
     @Override
@@ -131,26 +132,31 @@ public class MapRouletteUploadCommand extends MapRouletteCommand
                 {
                     reader.lines().filter(line -> line.trim().length() > 0).forEach(line ->
                     {
-                        final CheckFlag flagRecoveredFromLine = new CheckFlagDeserializer().deserialize(new JsonParser().parse(line), null, null);
+                        final CheckFlag flagRecoveredFromLine = new CheckFlagDeserializer()
+                                .deserialize(new JsonParser().parse(line), null, null);
                         final String countryCode = flagRecoveredFromLine.getCountryISO();
-                        final String challenge = flagRecoveredFromLine.getChallengeName().orElse("");
-                        if ((countries.isEmpty() || (!FlaggedObject.COUNTRY_MISSING.equals(countryCode) && countries.get().contains(countryCode)))
+                        final String challenge = flagRecoveredFromLine.getChallengeName()
+                                .orElse("");
+                        if ((countries.isEmpty()
+                                || (!FlaggedObject.COUNTRY_MISSING.equals(countryCode)
+                                        && countries.get().contains(countryCode)))
                                 // If the checks filter exists, check that the challenge name is in
                                 // the checks filter.
                                 && (checks.isEmpty() || checks.get().contains(challenge)))
                         {
-                            final Optional<CheckFlag> osmFlag = OpenStreetMapCheckFlagConverter.openStreetMapify(flagRecoveredFromLine);
                             try
                             {
                                 final Map<String, Challenge> countryToChallengeMap = this.checkNameChallengeMap
-                                        .computeIfAbsent(challenge,
-                                                ignore -> new HashMap<>());
-                                final Challenge challengeObject = countryToChallengeMap.computeIfAbsent(
-                                        countryCode,
-                                        ignore -> this.getChallenge(challenge,
-                                                instructions, countryCode, checkinCommentPrefix,
-                                                checkinComment));
-                                this.addTask(challengeObject, osmFlag.orElse(flagRecoveredFromLine).getMapRouletteTask());
+                                        .computeIfAbsent(challenge, ignore -> new HashMap<>());
+                                final Challenge challengeObject = countryToChallengeMap
+                                        .computeIfAbsent(countryCode,
+                                                ignore -> this.getChallenge(challenge, instructions,
+                                                        countryCode, checkinCommentPrefix,
+                                                        checkinComment));
+                                final Optional<CheckFlag> osmFlag = OpenStreetMapCheckFlagConverter
+                                        .openStreetMapify(flagRecoveredFromLine);
+                                this.addTask(challengeObject,
+                                        flagRecoveredFromLine.getMapRouletteTask());
                             }
                             catch (URISyntaxException | UnsupportedEncodingException error)
                             {

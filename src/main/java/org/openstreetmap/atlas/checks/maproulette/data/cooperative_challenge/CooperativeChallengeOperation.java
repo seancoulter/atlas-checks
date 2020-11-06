@@ -10,28 +10,12 @@ import org.openstreetmap.atlas.geography.atlas.items.ItemType;
 import com.google.gson.JsonObject;
 
 /***
- * This represents an operation that is embedded in a cooperative challenge
- *
- * Example:
- * Given a FeatureCollection geojson uploaded to MapRoulette:
- *
- * ```
- * {
- *   "type": "FeatureCollection",
- *   "features": [ ... ],            // omitted for readability
- *   "cooperativeWork": {            // special `cooperativeWork` property
- *     "meta": {
- *       "version": 2,               // must be format version `2`
- *       "type": 1                   // `1` for tag fix type
- *     },
- *     "operations": [               // Operations section (see below)
- *       ...
- *     ]
- *   }
- * }
- * ```
- *
- * This class is an abstract representation of the json material to be found under "operations"
+ * This represents an operation that is embedded in a cooperative challenge Example: Given a
+ * FeatureCollection geojson uploaded to MapRoulette: ``` { "type": "FeatureCollection", "features":
+ * [ ... ], // omitted for readability "cooperativeWork": { // special `cooperativeWork` property
+ * "meta": { "version": 2, // must be format version `2` "type": 1 // `1` for tag fix type },
+ * "operations": [ // Operations section (see below) ... ] } } ``` This class is an abstract
+ * representation of the json material to be found under "operations"
  *
  * @author seancoulter
  */
@@ -51,7 +35,9 @@ public abstract class CooperativeChallengeOperation
 
     /**
      * Return the string representation of the OSM data type best representing the itemType
-     * @param itemType Atlas item type
+     * 
+     * @param itemType
+     *            Atlas item type
      * @return "relation", "node", or "way"
      */
     private static String extractOSMObjectFromItemType(final ItemType itemType)
@@ -71,7 +57,9 @@ public abstract class CooperativeChallengeOperation
     {
         this.operationType = changeDescription.getChangeDescriptorType();
         final String rawId = Long.toString(changeDescription.getIdentifier());
-        this.identifier = String.join(DELIMITER, extractOSMObjectFromItemType(changeDescription.getItemType()), rawId.substring(0, rawId.length() - ATLAS_SECTIONING_IDENTIFIER_LENGTH));
+        this.identifier = String.join(DELIMITER,
+                extractOSMObjectFromItemType(changeDescription.getItemType()),
+                rawId.substring(0, rawId.length() - ATLAS_SECTIONING_IDENTIFIER_LENGTH));
         this.changeDescriptorList = changeDescription.getChangeDescriptors();
     }
 
